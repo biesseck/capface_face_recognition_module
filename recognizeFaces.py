@@ -292,11 +292,7 @@ def saveTestCropedFacesWithBaseCropedFaces(pathDirTestImages='', testImgFiles=[]
             joinedImgFaces = convertRGB2BGR_3channels(joinedImgFaces)
             cv2.imwrite(pathImgTestFaceWithRecognizedBaseFace, joinedImgFaces)
 
-            cv2.imshow('joinedImgFaces', joinedImgFaces)
-            cv2.waitKey(0)
-
-            # cv2.imshow('oneCropedTestFace', oneCropedTestFace)
-            # cv2.imshow('matchedCropedBaseFace', matchedCropedBaseFace)
+            # cv2.imshow('joinedImgFaces', joinedImgFaces)
             # cv2.waitKey(0)
 
     cv2.destroyAllWindows()
@@ -452,7 +448,9 @@ if __name__ == '__main__':
     # username = sys.argv[1]
     # pathDiretorioImagens = sys.argv[1]
 
-    pathDirTestImages = '/home/bernardo/faceDetectionRecognition/CapFace/imagensTeste/upload_08-11-2018_16h27m'
+    pathRepository = os.path.dirname(os.path.realpath(__file__))
+
+    pathDirTestImages = pathRepository + '/uploadsTeste/upload_08-11-2018_16h27m'
     # pathDirTestImages = sys.argv[1]
 
     jsonInputFileName = 'inicial.json'
@@ -462,7 +460,7 @@ if __name__ == '__main__':
     jsonOutputFileName = 'final.json'
     jsonOutputFileName = pathDirTestImages + '/' + jsonOutputFileName
 
-    pathDirBaseImages = '/home/bernardo/faceDetectionRecognition/CapFace/imagensBase'
+    pathDirBaseImages = pathRepository + '/imagensBase'
 
 
     # num_jitters_FaceNet = 1
