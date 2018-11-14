@@ -58,6 +58,7 @@ def getImagesListFromDirectory(pathDir=''):
         if file.endswith('.jpg') or file.endswith('.JPG') or file.endswith('.png') or file.endswith('.PNG'):
             imgFiles.append(file)
             # print('    file:', file)
+    imgFiles.sort()
     return imgFiles
 
 
@@ -401,6 +402,24 @@ def realizarMatchings(baseFaceDescriptors_nparray=numpy.array([]), testFaceDescr
 
 
 
+def generatePresenceList(nomesBaseAlunos=[], testDescriptorsMatchings_list=[]):
+    alunosPresences_list = []
+    for alunoIndex in range(0, len(nomesBaseAlunos)):
+        alunoIsPresent = False
+        for i in range(0, len(testDescriptorsMatchings_list)):
+            oneTestDescriptorsMatchings_list = testDescriptorsMatchings_list[i]
+            for j in range(0, len(oneTestDescriptorsMatchings_list)):
+                oneMatching = oneTestDescriptorsMatchings_list[j]
+                if oneMatching[2] != -1 and oneMatching[2] == alunoIndex:
+                    alunoIsPresent = True
+        alunosPresences_list.append(alunoIsPresent)
+        # print('Aluno: ' + str(nomesBaseAlunos[alunoIndex]) + "    isPresent: " + str(alunoIsPresent))
+
+    return alunosPresences_list
+
+
+
+
 def recognizeFaces(pathDirBaseImages='', turmaName='', pathDirTestImages='', testImgFiles=[], num_jitters_FaceNet=1):
     baseAlunosNames, baseImgsList, baseFaceLocationList, \
     baseCropedFacesList, baseFaceDescriptors_nparray = computeBaseImagesDescriptors(pathDirBaseImages, turmaName, num_jitters_FaceNet)
@@ -433,11 +452,14 @@ def recognizeFaces(pathDirBaseImages='', turmaName='', pathDirTestImages='', tes
     #
     # showFilteredCropedFaces(filteredCropedFaces_list)
 
+    sys.stdout.write('recognizeFaces(): generating presence list... ')
+    sys.stdout.flush()
+    alunosPresences_list = generatePresenceList(baseAlunosNames, testDescriptorsMatchings_list)
+    indexWhereAlunosPresences_list_equalToTrue = [i for i, n in enumerate(alunosPresences_list) if n == True]
+    sys.stdout.write(str(len(indexWhereAlunosPresences_list_equalToTrue)) + ' alunos present\n')
+    sys.stdout.flush()
 
-    # nomesAlunos = alunosNames
-    # presencasAlunos = alunosPresences
-
-    return nomesAlunos, presencasAlunos
+    return baseAlunosNames, alunosPresences_list
 
 
 
@@ -493,7 +515,7 @@ if __name__ == '__main__':
     faltasAlunos = []
     for i in range(len(presencasAlunos)):
         if presencasAlunos[i] == True:
-            faltasAlunos.append(0)  # se o aluno foi reconhecido recebe 0 faltas
+            faltasAlunos.append("0")  # se o aluno foi reconhecido recebe 0 faltas
         else:
             faltasAlunos.append(data['quantidade de aulas'])
 
