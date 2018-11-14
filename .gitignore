@@ -1,0 +1,24 @@
+# syntax: glob
+*~
+*.a
+*.o
+*.mexglx
+*.mexa64
+*.swo
+*.pyc
+*.py.swp
+*.hdf*
+*.csv
+*.csv#
+
+
+# Arquivos do PyCharm
+.idea/*
+*/.idea/*
+
+
+# Arquivos Insync
+.insync-trash/*
+*/.insync-trash/*
+
+
