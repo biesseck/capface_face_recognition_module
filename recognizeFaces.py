@@ -10,6 +10,8 @@ import cv2
 import face_recognition
 import numpy
 
+from Params import Params
+
 
 
 def loadDataFromJSON_asDict(jsonPath=''):
@@ -149,20 +151,20 @@ def detectAndCropFaces(imgsList=[], method='face_recognition'):
     return faceLocationList, cropedFacesList
 
 
-def computeBaseImagesFaceDescriptor(cropedFacesList=[], num_jitters_FaceNet=1):
+def computeBaseImagesFaceDescriptor(cropedFacesList=[], params=Params()):
     faceDescriptors_nparray = numpy.zeros((len(cropedFacesList), 128), dtype='float64')
 
     # print('computeBaseImagesFaceDescriptor():')
     for i in range(0, len(cropedFacesList)):
         cropedFace = cropedFacesList[i]
-        descriptor = face_recognition.face_encodings(cropedFace, num_jitters=num_jitters_FaceNet)
+        descriptor = face_recognition.face_encodings(cropedFace, num_jitters=params.num_jitters_FaceNet)
         if len(descriptor) > 0:
             faceDescriptors_nparray[i] = descriptor[0]
             # print('    faceDescriptors_nparray[i]:', faceDescriptors_nparray[i])
     return faceDescriptors_nparray
 
 
-def computeTestImagesFaceDescriptor(cropedFacesList=[], num_jitters_FaceNet=1):
+def computeTestImagesFaceDescriptor(cropedFacesList=[], params=Params()):
     qtdeFaces = [len(cropedFacesList[i]) for i in range(0, len(cropedFacesList))]
     faceDescriptors_list = [numpy.zeros((qtdeFaces[i], 128), dtype='float64') for i in range(0, len(cropedFacesList))]
 
@@ -172,7 +174,7 @@ def computeTestImagesFaceDescriptor(cropedFacesList=[], num_jitters_FaceNet=1):
 
         for i in range(0, len(imgFacesList)):
             cropedFace = imgFacesList[i]
-            descriptor = face_recognition.face_encodings(cropedFace, num_jitters=num_jitters_FaceNet)
+            descriptor = face_recognition.face_encodings(cropedFace, num_jitters=params.num_jitters_FaceNet)
             if len(descriptor) > 0:
                 faceDescriptors_list[j][i] = descriptor[0]
                 # print('    faceDescriptors_nparray[i]:', faceDescriptors_nparray[i])
@@ -308,7 +310,7 @@ def showFilteredCropedFaces(filteredCropedFaces_lists=[]):
     cv2.destroyAllWindows()
 
 
-def computeBaseImagesDescriptors(pathDir='', turmaName='', num_jitters_FaceNet=1):
+def computeBaseImagesDescriptors(pathDir='', turmaName='', params=Params()):
     sys.stdout.write('computeBaseImagesDescriptors(): loading image files names... ')
     sys.stdout.flush()
     pathTurmaName = pathDir + '/' + turmaName
@@ -336,9 +338,9 @@ def computeBaseImagesDescriptors(pathDir='', turmaName='', num_jitters_FaceNet=1
     sys.stdout.write(str(len(cropedFacesList)) + ' detected faces\n')
     sys.stdout.flush()
 
-    sys.stdout.write('computeBaseImagesDescriptors(): computing face descriptors (num_jitters_FaceNet: ' + str(num_jitters_FaceNet) + ')... ')
+    sys.stdout.write('computeBaseImagesDescriptors(): computing face descriptors (num_jitters_FaceNet: ' + str(params.num_jitters_FaceNet) + ')... ')
     sys.stdout.flush()
-    faceDescriptors_nparray = computeBaseImagesFaceDescriptor(cropedFacesList, num_jitters_FaceNet)
+    faceDescriptors_nparray = computeBaseImagesFaceDescriptor(cropedFacesList, params)
     sys.stdout.write(str(faceDescriptors_nparray.shape[0]) + ' descriptors\n')
     sys.stdout.flush()
 
@@ -347,7 +349,7 @@ def computeBaseImagesDescriptors(pathDir='', turmaName='', num_jitters_FaceNet=1
 
 
 
-def computeTestImagesDescriptors(pathDir='', imgFiles=[], num_jitters_FaceNet=1):
+def computeTestImagesDescriptors(pathDir='', imgFiles=[], params=Params()):
     sys.stdout.write('\ncomputeTestImagesDescriptors(): loading images from disk... ')
     sys.stdout.flush()
     imgsList = loadImages(pathDir, imgFiles)
@@ -362,9 +364,9 @@ def computeTestImagesDescriptors(pathDir='', imgFiles=[], num_jitters_FaceNet=1)
     sys.stdout.write(str(qtdeFaces) + ' detected faces in total\n')
     sys.stdout.flush()
 
-    sys.stdout.write('computeTestImagesDescriptors(): computing face descriptors (num_jitters_FaceNet: ' + str(num_jitters_FaceNet) + ')... ')
+    sys.stdout.write('computeTestImagesDescriptors(): computing face descriptors (num_jitters_FaceNet: ' + str(params.num_jitters_FaceNet) + ')... ')
     sys.stdout.flush()
-    faceDescriptors_list = computeTestImagesFaceDescriptor(cropedFacesList, num_jitters_FaceNet)
+    faceDescriptors_list = computeTestImagesFaceDescriptor(cropedFacesList, params)
     qtdeTotalDescriptors = sum([len(faceDescriptors_list[i]) for i in range(0, len(faceDescriptors_list))])
     sys.stdout.write(str(qtdeTotalDescriptors) + ' descriptors in total\n')
     sys.stdout.flush()
@@ -420,11 +422,11 @@ def generatePresenceList(nomesBaseAlunos=[], testDescriptorsMatchings_list=[]):
 
 
 
-def recognizeFaces(pathDirBaseImages='', turmaName='', pathDirTestImages='', testImgFiles=[], num_jitters_FaceNet=1):
+def recognizeFaces(pathDirBaseImages='', turmaName='', pathDirTestImages='', testImgFiles=[], params=Params()):
     baseAlunosNames, baseImgsList, baseFaceLocationList, \
-    baseCropedFacesList, baseFaceDescriptors_nparray = computeBaseImagesDescriptors(pathDirBaseImages, turmaName, num_jitters_FaceNet)
+    baseCropedFacesList, baseFaceDescriptors_nparray = computeBaseImagesDescriptors(pathDirBaseImages, turmaName, params)
 
-    testImgsList, testFaceLocationList, testCropedFacesList, testFaceDescriptors_list = computeTestImagesDescriptors(pathDirTestImages, testImgFiles, num_jitters_FaceNet)
+    testImgsList, testFaceLocationList, testCropedFacesList, testFaceDescriptors_list = computeTestImagesDescriptors(pathDirTestImages, testImgFiles, params)
 
     sys.stdout.write('\nrecognizeFaces(): computing matchings between test and base faces... ')
     sys.stdout.flush()
@@ -470,6 +472,8 @@ if __name__ == '__main__':
     # username = sys.argv[1]
     # pathDiretorioImagens = sys.argv[1]
 
+    params = Params()
+
     pathRepository = os.path.dirname(os.path.realpath(__file__))
 
     pathDirTestImages = pathRepository + '/uploadsTeste/upload_08-11-2018_16h27m'
@@ -485,12 +489,16 @@ if __name__ == '__main__':
     pathDirBaseImages = pathRepository + '/imagensBase'
 
 
-    # num_jitters_FaceNet = 1
-    num_jitters_FaceNet = 3
-    # num_jitters_FaceNet = 5
-    # num_jitters_FaceNet = 10
-    # num_jitters_FaceNet = 15
-    # num_jitters_FaceNet = 20
+    params.recomputeBaseFaceDescriptor = True
+    # params.recomputeBaseFaceDescriptor = False
+
+
+    # params.num_jitters_FaceNet = 1
+    params.num_jitters_FaceNet = 3
+    # params.num_jitters_FaceNet = 5
+    # params.num_jitters_FaceNet = 10
+    # params.num_jitters_FaceNet = 15
+    # params.num_jitters_FaceNet = 20
 
 
     data = loadDataFromJSON_asDict(jsonInputFileName)
@@ -510,7 +518,7 @@ if __name__ == '__main__':
 
 
 
-    nomesAlunos, presencasAlunos = recognizeFaces(pathDirBaseImages, data['Turma'], pathDirTestImages, data['imgFiles'], num_jitters_FaceNet)
+    nomesAlunos, presencasAlunos = recognizeFaces(pathDirBaseImages, data['Turma'], pathDirTestImages, data['imgFiles'], params)
 
     faltasAlunos = []
     for i in range(len(presencasAlunos)):
