@@ -117,7 +117,7 @@ def detectAndCropFaces(imgsList=[], method='face_recognition'):
     :return:
     '''
     faceLocationList = []
-    cropedFacesList = []
+    croppedFacesList = []
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
     for img in imgsList:
@@ -135,62 +135,62 @@ def detectAndCropFaces(imgsList=[], method='face_recognition'):
 
         if len(faces_locations) > 0:  # Se detectou uma face na imagem
             facesImgList = []
-            cropedImgList = []
+            croppedImgList = []
             for face_location in faces_locations:
                 facesImgList.append(face_location)
-                cropedImg = img[face_location[0]:face_location[2], face_location[3]:face_location[1]]
-                cropedImgList.append(cropedImg)
+                croppedImg = img[face_location[0]:face_location[2], face_location[3]:face_location[1]]
+                croppedImgList.append(croppedImg)
 
-                # cropedImgBGR = convertRGB2BGR_3channels(cropedImg)
-                # cv2.imshow('Found face', cropedImgBGR)
+                # croppedImgBGR = convertRGB2BGR_3channels(croppedImg)
+                # cv2.imshow('Found face', croppedImgBGR)
                 # cv2.waitKey(0)
 
             faceLocationList.append(facesImgList)
-            cropedFacesList.append(cropedImgList)
+            croppedFacesList.append(croppedImgList)
 
-    return faceLocationList, cropedFacesList
+    return faceLocationList, croppedFacesList
 
 
-def computeBaseImagesFaceDescriptor(cropedFacesList=[], params=Params()):
-    faceDescriptors_nparray = numpy.zeros((len(cropedFacesList), 128), dtype='float64')
+def computeBaseImagesFaceDescriptor(croppedFacesList=[], params=Params()):
+    faceDescriptors_nparray = numpy.zeros((len(croppedFacesList), 128), dtype='float64')
 
     # print('computeBaseImagesFaceDescriptor():')
-    for i in range(0, len(cropedFacesList)):
-        cropedFace = cropedFacesList[i]
-        descriptor = face_recognition.face_encodings(cropedFace, num_jitters=params.num_jitters_FaceNet)
+    for i in range(0, len(croppedFacesList)):
+        croppedFace = croppedFacesList[i]
+        descriptor = face_recognition.face_encodings(croppedFace, num_jitters=params.num_jitters_FaceNet)
         if len(descriptor) > 0:
             faceDescriptors_nparray[i] = descriptor[0]
             # print('    faceDescriptors_nparray[i]:', faceDescriptors_nparray[i])
     return faceDescriptors_nparray
 
 
-def computeTestImagesFaceDescriptor(cropedFacesList=[], params=Params()):
-    qtdeFaces = [len(cropedFacesList[i]) for i in range(0, len(cropedFacesList))]
-    faceDescriptors_list = [numpy.zeros((qtdeFaces[i], 128), dtype='float64') for i in range(0, len(cropedFacesList))]
+def computeTestImagesFaceDescriptor(croppedFacesList=[], params=Params()):
+    qtdeFaces = [len(croppedFacesList[i]) for i in range(0, len(croppedFacesList))]
+    faceDescriptors_list = [numpy.zeros((qtdeFaces[i], 128), dtype='float64') for i in range(0, len(croppedFacesList))]
 
     # print('computeTestImagesFaceDescriptor():')
-    for j in range(0, len(cropedFacesList)):
-        imgFacesList = cropedFacesList[j]
+    for j in range(0, len(croppedFacesList)):
+        imgFacesList = croppedFacesList[j]
 
         for i in range(0, len(imgFacesList)):
-            cropedFace = imgFacesList[i]
-            descriptor = face_recognition.face_encodings(cropedFace, num_jitters=params.num_jitters_FaceNet)
+            croppedFace = imgFacesList[i]
+            descriptor = face_recognition.face_encodings(croppedFace, num_jitters=params.num_jitters_FaceNet)
             if len(descriptor) > 0:
                 faceDescriptors_list[j][i] = descriptor[0]
                 # print('    faceDescriptors_nparray[i]:', faceDescriptors_nparray[i])
     return faceDescriptors_list
 
 
-def filterRepeatedFaces(faceDescriptors_list=[], cropedFacesList=[]):
+def filterRepeatedFaces(faceDescriptors_list=[], croppedFacesList=[]):
     # filterTolerance = 0.6
     filterTolerance = 0.4
     filteredFaceDescriptors_ndarray = faceDescriptors_list[0]  # adiciona as faces da primeira lista na lista final
-    filteredCropedFaces_list = cropedFacesList[0]              # adiciona as faces da primeira lista na lista final
+    filteredCroppedFaces_list = croppedFacesList[0]              # adiciona as faces da primeira lista na lista final
 
     for i in range(1, len(faceDescriptors_list)):
         oneFaceDescriptor_list = faceDescriptors_list[i]  # aponta para a proxima lista de descritores
         for j in range(0, len(oneFaceDescriptor_list)):
-            oneFace = cropedFacesList[i][j]  # aponta para uma face da lista selecionada
+            oneFace = croppedFacesList[i][j]  # aponta para uma face da lista selecionada
             oneDescriptor = oneFaceDescriptor_list[j]  # aponta para um descritor da lista selecionada
             distances = face_recognition.face_distance(filteredFaceDescriptors_ndarray, oneDescriptor)
             minDistance = distances.min()
@@ -198,17 +198,17 @@ def filterRepeatedFaces(faceDescriptors_list=[], cropedFacesList=[]):
 
             if minDistance > filterTolerance:  # se nao houver matching o descritor entra na lista final
                 filteredFaceDescriptors_ndarray = numpy.append(filteredFaceDescriptors_ndarray, oneDescriptor.reshape((1, oneDescriptor.shape[0])), axis=0)
-                filteredCropedFaces_list.append(oneFace)
+                filteredCroppedFaces_list.append(oneFace)
                 # cv2.imshow('Face Nao-Repetida', oneFace)
                 # cv2.waitKey(0)
             else:
                 pass
                 # print('Face Repetida -> distance:', distances[matchIndex])
-                # cv2.imshow('Face Repetida 1', filteredCropedFaces_list[matchIndex])
+                # cv2.imshow('Face Repetida 1', filteredCroppedFaces_list[matchIndex])
                 # cv2.imshow('Face Repetida 2', oneFace)
                 # cv2.waitKey(0)
 
-    return filteredFaceDescriptors_ndarray, filteredCropedFaces_list
+    return filteredFaceDescriptors_ndarray, filteredCroppedFaces_list
 
 
 def joinFilesIntoOneList(imgsList=[]):
@@ -218,7 +218,7 @@ def joinFilesIntoOneList(imgsList=[]):
     return newImgsList
 
 
-def saveTestImagesWithRectangleFaces(pathDirTestImages='', testImgFiles=[], testImgsList=[], testFaceLocationList=[], cropedFacesList=[], testDescriptorsMatchings_list=[], baseAlunosNames=[]):
+def saveTestImagesWithRectangleFaces(pathDirTestImages='', testImgFiles=[], testImgsList=[], testFaceLocationList=[], croppedFacesList=[], testDescriptorsMatchings_list=[], baseAlunosNames=[]):
     dirDetectedFaces = 'test_images_with_detected_faces'
     pathDirDetectedFaces = pathDirTestImages + '/' + dirDetectedFaces
     if not os.path.exists(pathDirDetectedFaces):
@@ -268,7 +268,7 @@ def adjustTestFaceSizeAndBaseFaceSize(testFace=numpy.array([]), baseFace=numpy.a
 
 
 
-def saveTestCropedFacesWithBaseCropedFaces(pathDirTestImages='', testImgFiles=[], testImgsList=[], testFaceLocationList=[], cropedFacesList=[], testDescriptorsMatchings_list=[], baseCropedFacesList=[], baseAlunosNames=[]):
+def saveTestCroppedFacesWithBaseCroppedFaces(pathDirTestImages='', testImgFiles=[], testImgsList=[], testFaceLocationList=[], croppedFacesList=[], testDescriptorsMatchings_list=[], baseCroppedFacesList=[], baseAlunosNames=[]):
     dirDetectedFaces = 'test_faces_with_recognized_base_faces'
     pathDirDetectedFaces = pathDirTestImages + '/' + dirDetectedFaces
     if not os.path.exists(pathDirDetectedFaces):
@@ -278,19 +278,19 @@ def saveTestCropedFacesWithBaseCropedFaces(pathDirTestImages='', testImgFiles=[]
 
     for i in range(0, len(testImgFiles)):
         imgFileName = testImgFiles[i].split('.')[0]
-        oneCropedFacesList = cropedFacesList[i]
+        oneCroppedFacesList = croppedFacesList[i]
 
-        for j in range(0, len(oneCropedFacesList)):
-            oneCropedTestFace = oneCropedFacesList[j]
+        for j in range(0, len(oneCroppedFacesList)):
+            oneCroppedTestFace = oneCroppedFacesList[j]
             indexMatchedBaseFace = testDescriptorsMatchings_list[i][j][2]
-            matchedCropedBaseFace = baseCropedFacesList[indexMatchedBaseFace]
+            matchedCroppedBaseFace = baseCroppedFacesList[indexMatchedBaseFace]
             matchedAlunoName = baseAlunosNames[indexMatchedBaseFace]
             imgTestFaceWithRecognizedBaseFace = imgFileName + '_face=' + str(j) + '_recognized=' + matchedAlunoName + '.png'
             pathImgTestFaceWithRecognizedBaseFace = pathDirDetectedFaces + '/' + imgTestFaceWithRecognizedBaseFace
 
-            oneCropedTestFace_adjusted, matchedCropedBaseFace_adjusted = adjustTestFaceSizeAndBaseFaceSize(oneCropedTestFace, matchedCropedBaseFace)
+            oneCroppedTestFace_adjusted, matchedCroppedBaseFace_adjusted = adjustTestFaceSizeAndBaseFaceSize(oneCroppedTestFace, matchedCroppedBaseFace)
 
-            joinedImgFaces = numpy.concatenate((oneCropedTestFace_adjusted, matchedCropedBaseFace_adjusted), axis=1)  # stack horizontally
+            joinedImgFaces = numpy.concatenate((oneCroppedTestFace_adjusted, matchedCroppedBaseFace_adjusted), axis=1)  # stack horizontally
 
             joinedImgFaces = convertRGB2BGR_3channels(joinedImgFaces)
             cv2.imwrite(pathImgTestFaceWithRecognizedBaseFace, joinedImgFaces)
@@ -302,12 +302,77 @@ def saveTestCropedFacesWithBaseCropedFaces(pathDirTestImages='', testImgFiles=[]
 
 
 
-def showFilteredCropedFaces(filteredCropedFaces_lists=[]):
-    for oneFilteredCropedFace in filteredCropedFaces_lists:
-        oneFilteredCropedFace = convertRGB2BGR_3channels(oneFilteredCropedFace)
-        cv2.imshow('Filtered croped face', oneFilteredCropedFace)
+def showFilteredCroppedFaces(filteredCroppedFaces_lists=[]):
+    for oneFilteredCroppedFace in filteredCroppedFaces_lists:
+        oneFilteredCroppedFace = convertRGB2BGR_3channels(oneFilteredCroppedFace)
+        cv2.imshow('Filtered cropped face', oneFilteredCroppedFace)
         cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+
+def saveCroppedBaseImageFaces(pathTurmaName='', imgFiles=[], croppedFacesList=[], params=Params()):
+    dirCroppedImgFaces = params.dirCroppedImgBaseFaces
+    pathDirCroppedImgFaces = pathTurmaName + '/' + dirCroppedImgFaces
+    if not os.path.exists(pathDirCroppedImgFaces):
+        os.makedirs(pathDirCroppedImgFaces)
+
+    for i in range(0, len(imgFiles)):
+        croppedImgName = imgFiles[i].split('.')[0] + '_croppedFace.png'
+        pathCroppedImgName = pathDirCroppedImgFaces + '/' + croppedImgName
+        croppedFace = croppedFacesList[i]
+        croppedFace = convertRGB2BGR_3channels(croppedFace)
+        cv2.imwrite(pathCroppedImgName, croppedFace)
+
+
+
+def loadCroppedFaces(pathTurmaName='', imgFiles=[], params=Params()):
+    dirCroppedImgFaces = params.dirCroppedImgBaseFaces
+    pathDirCroppedImgFaces = pathTurmaName + '/' + dirCroppedImgFaces
+    croppedFacesList = []
+
+    if os.path.exists(pathDirCroppedImgFaces):
+        for i in range(0, len(imgFiles)):
+            croppedImgName = imgFiles[i].split('.')[0] + '_croppedFace.png'
+            pathCroppedImgName = pathDirCroppedImgFaces + '/' + croppedImgName
+            croppedImg = face_recognition.load_image_file(pathCroppedImgName)
+            croppedFacesList.append(croppedImg)
+
+            # cv2.imshow('', croppedImg)
+            # cv2.waitKey(0)
+
+    return croppedFacesList
+
+
+
+def saveBaseFaceDescriptor(pathTurmaName='', imgFiles=[], faceDescriptors_ndarray=numpy.array([]), params=Params()):
+    dirDescriptorsCroppedImgBaseFaces = params.dirDescriptorsCroppedImgBaseFaces
+    pathDirDescriptorsCroppedImgBaseFaces = pathTurmaName + '/' + dirDescriptorsCroppedImgBaseFaces
+    if not os.path.exists(pathDirDescriptorsCroppedImgBaseFaces):
+        os.makedirs(pathDirDescriptorsCroppedImgBaseFaces)
+
+    for i in range(0, len(imgFiles)):
+        descriptorFaceFileName = imgFiles[i].split('.')[0] + '_faceDescriptors.csv'
+        pathDescriptorFaceFileName = pathDirDescriptorsCroppedImgBaseFaces + '/' + descriptorFaceFileName
+        faceDescriptor = faceDescriptors_ndarray[i]
+        numpy.savetxt(pathDescriptorFaceFileName, faceDescriptor, delimiter=',')
+
+
+
+def loadBaseFaceDescriptor(pathTurmaName='', imgFiles=[], params=Params()):
+    dirDescriptorsCroppedImgBaseFaces = params.dirDescriptorsCroppedImgBaseFaces
+    pathDirDescriptorsCroppedImgBaseFaces = pathTurmaName + '/' + dirDescriptorsCroppedImgBaseFaces
+    faceDescriptors_ndarray = numpy.zeros((len(imgFiles), 128))
+
+    if os.path.exists(pathDirDescriptorsCroppedImgBaseFaces):
+        for i in range(0, len(imgFiles)):
+            descriptorFaceFileName = imgFiles[i].split('.')[0] + '_faceDescriptors.csv'
+            pathDescriptorFaceFileName = pathDirDescriptorsCroppedImgBaseFaces + '/' + descriptorFaceFileName
+            faceDescriptor = numpy.loadtxt(pathDescriptorFaceFileName, delimiter=',')
+            faceDescriptors_ndarray[i] = faceDescriptor
+
+    return faceDescriptors_ndarray
+
 
 
 def computeBaseImagesDescriptors(pathDir='', turmaName='', params=Params()):
@@ -330,21 +395,50 @@ def computeBaseImagesDescriptors(pathDir='', turmaName='', params=Params()):
     sys.stdout.write(str(len(imgsList)) + ' loaded images\n')
     sys.stdout.flush()
 
-    sys.stdout.write('computeBaseImagesDescriptors(): detecting and cropping faces... ')
-    sys.stdout.flush()
-    faceLocationList, cropedFacesList = detectAndCropFaces(imgsList)
-    faceLocationList = joinFilesIntoOneList(faceLocationList)
-    cropedFacesList = joinFilesIntoOneList(cropedFacesList)
-    sys.stdout.write(str(len(cropedFacesList)) + ' detected faces\n')
-    sys.stdout.flush()
+    pathDirCroppedFaces = pathTurmaName + '/' + params.dirCroppedImgBaseFaces
+    if params.loadPrecomputedBaseFaceDescriptor == True and os.path.exists(pathDirCroppedFaces):
+        sys.stdout.write('computeBaseImagesDescriptors(): loading cropped faces... ')
+        sys.stdout.flush()
+        croppedFacesList = loadCroppedFaces(pathTurmaName, imgFiles, params)
+        sys.stdout.write(str(len(croppedFacesList)) + ' cropped faces loaded\n')
+        sys.stdout.flush()
 
-    sys.stdout.write('computeBaseImagesDescriptors(): computing face descriptors (num_jitters_FaceNet: ' + str(params.num_jitters_FaceNet) + ')... ')
-    sys.stdout.flush()
-    faceDescriptors_nparray = computeBaseImagesFaceDescriptor(cropedFacesList, params)
-    sys.stdout.write(str(faceDescriptors_nparray.shape[0]) + ' descriptors\n')
-    sys.stdout.flush()
+    else:
+        sys.stdout.write('computeBaseImagesDescriptors(): detecting and cropping faces... ')
+        sys.stdout.flush()
+        faceLocationList, croppedFacesList = detectAndCropFaces(imgsList)
+        faceLocationList = joinFilesIntoOneList(faceLocationList)
+        croppedFacesList = joinFilesIntoOneList(croppedFacesList)
+        sys.stdout.write(str(len(croppedFacesList)) + ' detected faces\n')
+        sys.stdout.flush()
 
-    return alunosNames, imgsList, faceLocationList, cropedFacesList, faceDescriptors_nparray
+        sys.stdout.write('computeBaseImagesDescriptors(): saving cropped image faces... ')
+        sys.stdout.flush()
+        saveCroppedBaseImageFaces(pathTurmaName, imgFiles, croppedFacesList, params)
+        sys.stdout.write(str(len(croppedFacesList)) + ' faces saved\n')
+        sys.stdout.flush()
+
+    pathDirDescriptorsCroppedImgBaseFaces = pathTurmaName + '/' + params.dirDescriptorsCroppedImgBaseFaces
+    if params.loadPrecomputedBaseFaceDescriptor == True and os.path.exists(pathDirDescriptorsCroppedImgBaseFaces):
+        sys.stdout.write('computeBaseImagesDescriptors(): loading face descriptors... ')
+        sys.stdout.flush()
+        faceDescriptors_nparray = loadBaseFaceDescriptor(pathTurmaName, imgFiles, params)
+        sys.stdout.write(str(faceDescriptors_nparray.shape[0]) + ' face descriptors loaded\n')
+        sys.stdout.flush()
+    else:
+        sys.stdout.write('computeBaseImagesDescriptors(): computing face descriptors (num_jitters_FaceNet: ' + str(params.num_jitters_FaceNet) + ')... ')
+        sys.stdout.flush()
+        faceDescriptors_nparray = computeBaseImagesFaceDescriptor(croppedFacesList, params)
+        sys.stdout.write(str(faceDescriptors_nparray.shape[0]) + ' descriptors\n')
+        sys.stdout.flush()
+
+        sys.stdout.write('computeBaseImagesDescriptors(): saving face descriptors... ')
+        sys.stdout.flush()
+        saveBaseFaceDescriptor(pathTurmaName, imgFiles, faceDescriptors_nparray, params)
+        sys.stdout.write(str(faceDescriptors_nparray.shape[0]) + ' descriptors saved\n')
+        sys.stdout.flush()
+
+    return alunosNames, imgsList, croppedFacesList, faceDescriptors_nparray
 
 
 
@@ -358,20 +452,20 @@ def computeTestImagesDescriptors(pathDir='', imgFiles=[], params=Params()):
 
     sys.stdout.write('computeTestImagesDescriptors(): detecting and cropping faces... ')
     sys.stdout.flush()
-    faceLocationList, cropedFacesList = detectAndCropFaces(imgsList, method='opencv')
-    # faceLocationList, cropedFacesList = detectAndCropFaces(imgsList, method='face_recognition')
+    faceLocationList, croppedFacesList = detectAndCropFaces(imgsList, method='opencv')
+    # faceLocationList, croppedFacesList = detectAndCropFaces(imgsList, method='face_recognition')
     qtdeFaces = sum([len(faceLocationList[i]) for i in range(0, len(faceLocationList))])
     sys.stdout.write(str(qtdeFaces) + ' detected faces in total\n')
     sys.stdout.flush()
 
     sys.stdout.write('computeTestImagesDescriptors(): computing face descriptors (num_jitters_FaceNet: ' + str(params.num_jitters_FaceNet) + ')... ')
     sys.stdout.flush()
-    faceDescriptors_list = computeTestImagesFaceDescriptor(cropedFacesList, params)
+    faceDescriptors_list = computeTestImagesFaceDescriptor(croppedFacesList, params)
     qtdeTotalDescriptors = sum([len(faceDescriptors_list[i]) for i in range(0, len(faceDescriptors_list))])
     sys.stdout.write(str(qtdeTotalDescriptors) + ' descriptors in total\n')
     sys.stdout.flush()
 
-    return imgsList, faceLocationList, cropedFacesList, faceDescriptors_list
+    return imgsList, faceLocationList, croppedFacesList, faceDescriptors_list
 
 
 
@@ -423,10 +517,10 @@ def generatePresenceList(nomesBaseAlunos=[], testDescriptorsMatchings_list=[]):
 
 
 def recognizeFaces(pathDirBaseImages='', turmaName='', pathDirTestImages='', testImgFiles=[], params=Params()):
-    baseAlunosNames, baseImgsList, baseFaceLocationList, \
-    baseCropedFacesList, baseFaceDescriptors_nparray = computeBaseImagesDescriptors(pathDirBaseImages, turmaName, params)
+    baseAlunosNames, baseImgsList, \
+    baseCroppedFacesList, baseFaceDescriptors_nparray = computeBaseImagesDescriptors(pathDirBaseImages, turmaName, params)
 
-    testImgsList, testFaceLocationList, testCropedFacesList, testFaceDescriptors_list = computeTestImagesDescriptors(pathDirTestImages, testImgFiles, params)
+    testImgsList, testFaceLocationList, testCroppedFacesList, testFaceDescriptors_list = computeTestImagesDescriptors(pathDirTestImages, testImgFiles, params)
 
     sys.stdout.write('\nrecognizeFaces(): computing matchings between test and base faces... ')
     sys.stdout.flush()
@@ -436,23 +530,24 @@ def recognizeFaces(pathDirBaseImages='', turmaName='', pathDirTestImages='', tes
 
     sys.stdout.write('recognizeFaces(): saving test images with rectangle faces... ')
     sys.stdout.flush()
-    saveTestImagesWithRectangleFaces(pathDirTestImages, testImgFiles, testImgsList, testFaceLocationList, testCropedFacesList, testDescriptorsMatchings_list, baseAlunosNames)
+    saveTestImagesWithRectangleFaces(pathDirTestImages, testImgFiles, testImgsList, testFaceLocationList, testCroppedFacesList, testDescriptorsMatchings_list, baseAlunosNames)
     sys.stdout.write(str(len(testImgFiles)) + ' images saved\n')
     sys.stdout.flush()
 
-    sys.stdout.write('recognizeFaces(): saving croped test faces with recognized base faces... ')
+    sys.stdout.write('recognizeFaces(): saving cropped test faces with recognized base faces... ')
     sys.stdout.flush()
-    saveTestCropedFacesWithBaseCropedFaces(pathDirTestImages, testImgFiles, testImgsList, testFaceLocationList, testCropedFacesList, testDescriptorsMatchings_list, baseCropedFacesList, baseAlunosNames)
+    saveTestCroppedFacesWithBaseCroppedFaces(pathDirTestImages, testImgFiles, testImgsList, testFaceLocationList, testCroppedFacesList, testDescriptorsMatchings_list, baseCroppedFacesList, baseAlunosNames)
     sys.stdout.write(str(len(testImgFiles)) + ' images saved\n')
     sys.stdout.flush()
 
+    # TODO: verificar matchings antes de gerar a lista de presenca
     # sys.stdout.write('recognizeFaces(): filtering repeated face descriptors... ')
     # sys.stdout.flush()
-    # filteredFaceDescriptors_ndarray, filteredCropedFaces_list = filterRepeatedFaces(faceDescriptors_list, cropedFacesList)
+    # filteredFaceDescriptors_ndarray, filteredCroppedFaces_list = filterRepeatedFaces(faceDescriptors_list, croppedFacesList)
     # sys.stdout.write(str(filteredFaceDescriptors_ndarray.shape[0]) + ' filtered descriptors\n')
     # sys.stdout.flush()
     #
-    # showFilteredCropedFaces(filteredCropedFaces_list)
+    # showFilteredCroppedFaces(filteredCroppedFaces_list)
 
     sys.stdout.write('recognizeFaces(): generating presence list... ')
     sys.stdout.flush()
@@ -489,8 +584,8 @@ if __name__ == '__main__':
     pathDirBaseImages = pathRepository + '/imagensBase'
 
 
-    params.recomputeBaseFaceDescriptor = True
-    # params.recomputeBaseFaceDescriptor = False
+    params.loadPrecomputedBaseFaceDescriptor = True
+    # params.loadPrecomputedBaseFaceDescriptor = False
 
 
     # params.num_jitters_FaceNet = 1
