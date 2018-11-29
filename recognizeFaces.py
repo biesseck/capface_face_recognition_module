@@ -118,7 +118,7 @@ def detectAndCropFaces(imgsList=[], method='face_recognition'):
     '''
     faceLocationList = []
     croppedFacesList = []
-    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    face_cascade = cv2.CascadeClassifier('/home/ifmt/pycharm-workspace/face_recognition_capface_module/haarcascade_frontalface_default.xml')
 
     for img in imgsList:
         if method == 'face_recognition':
@@ -249,9 +249,9 @@ def saveTestImagesWithRectangleFaces(pathDirTestImages='', testImgFiles=[], test
         img = convertRGB2BGR_3channels(img)
         cv2.imwrite(pathImgFile_withDetectedFaces, img)
 
-        # scaledImg = cv2.resize(img, (0, 0), fx=0.25, fy=0.25)
-        # cv2.imshow('', scaledImg)
-        # cv2.waitKey(0)
+        scaledImg = cv2.resize(img, (0, 0), fx=0.25, fy=0.25)
+        cv2.imshow('', scaledImg)
+        cv2.waitKey(5000)
     cv2.destroyAllWindows()
 
 
@@ -564,20 +564,26 @@ def recognizeFaces(pathDirBaseImages='', turmaName='', pathDirTestImages='', tes
 # MAIN ROUTINE
 if __name__ == '__main__':
 
-    # username = sys.argv[1]
-    # pathDiretorioImagens = sys.argv[1]
+    pathRepository = os.path.dirname(os.path.realpath(__file__))
+
+    if len(sys.argv) > 1:
+        pathDirTestImages = sys.argv[1]
+        jsonInputFileName = sys.argv[2]
+
+    else:
+        # pathDirTestImages = pathRepository + '/uploadsTeste/upload_08-11-2018_16h27m'
+        # pathDirTestImages = pathRepository + '/uploadsTeste/upload_26-11-2018_07h00m'
+        # pathDirTestImages = pathRepository + '/uploadsTeste/upload_27-11-2018_16h00m'
+        pathDirTestImages = '/home/ifmt/CapfaceUploads/bernardo_11-2018_12-00-15'
+        jsonInputFileName = 'inicial.json'
+
+
+    print('pathDirTestImages: ' + pathDirTestImages)
+    print('jsonInputFileName: ' + jsonInputFileName)
 
     params = Params()
 
-    pathRepository = os.path.dirname(os.path.realpath(__file__))
-
-    pathDirTestImages = pathRepository + '/uploadsTeste/upload_08-11-2018_16h27m'
-    # pathDirTestImages = sys.argv[1]
-
-    jsonInputFileName = 'inicial.json'
-    # jsonInputFileName = sys.argv[2]
     jsonInputFileName = pathDirTestImages + '/' + jsonInputFileName
-
     jsonOutputFileName = 'final.json'
     jsonOutputFileName = pathDirTestImages + '/' + jsonOutputFileName
 
