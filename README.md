@@ -1,5 +1,5 @@
-#face_recognition_classroom
+# capface_face_recognition_module
 
-  - Bernardo Biesseck (IFMT campus Pontes e Lacerda
+  - Bernardo Biesseck (IFMT campus Pontes e Lacerda)
   
 
